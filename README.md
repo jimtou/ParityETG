@@ -1,10 +1,10 @@
-# [Parity](https://parity.io/) - fast, light, and robust Ethereum client
+# [Parity For EthGold](https://ethgold.io/) - fast, light, and robust Ethereum Gold client
 
-[![build status](https://gitlab.parity.io/parity/parity/badges/master/build.svg)](https://gitlab.parity.io/parity/parity/commits/master)
+[![build status](https://gitlab.ethgold.io/parity/parity/badges/master/build.svg)](https://gitlab.ethgold.io/parity/parity/commits/master)
 [![Snap Status](https://build.snapcraft.io/badge/paritytech/parity.svg)](https://build.snapcraft.io/user/paritytech/parity)
 [![GPLv3](https://img.shields.io/badge/license-GPL%20v3-green.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-- [Download the latest release here.](https://github.com/paritytech/parity/releases)
+- [Download the latest release here.](https://github.com/EthGold/ParityETG/releases)
 
 ### Join the chat!
 
@@ -45,6 +45,17 @@ Parity's current release is 1.7. You can download it at https://github.com/parit
 
 We recommend installing Rust through [rustup](https://www.rustup.rs/). If you don't already have rustup, you can install it like this:
 
+- Ubuntu:
+	```bash
+	apt install build-essential
+	apt install pkg-config
+	apt install libssl-dev
+	apt install libudev-dev
+ 	source $HOME/.cargo/env
+	rustup toolchain install 1.26.0
+	rustup default 1.26.0
+	rustup run 1.26.0 cargo build --release
+	```
 - Linux:
 	```bash
 	$ curl https://sh.rustup.rs -sSf | sh
@@ -103,15 +114,18 @@ $ ~/.cargo/bin/cargo build --release
 ## Simple one-line installer for Mac and Ubuntu
 
 ```bash
-bash <(curl https://get.parity.io -Lk)
+bash <(curl https://get.ethgold.io -Lk)
 ```
 
-## Start Parity
+## Start ParityETG
 ### Manually
 To start Parity manually, just run
 ```bash
-$ ./target/release/parity
+$ ./target/release/parity --chain etg --port 32800 \
+--bootnodes="enode://9fce8413c4e77984cbaebc849e61392cf9fb753c6a532b5781dfc35340eb9b102fbcfdaa18dfb8bb98ff4b1e88a045c91bae29fe3cf8e4e1782b996a55c71a1b@206.189.75.108:32800"
 ```
+
+Note that our default port is 32800 and you need to specify the bootnodes, otherwise the EtherCoin Cash won't be correctly synced.
 
 and Parity will begin syncing the Ethereum blockchain.
 

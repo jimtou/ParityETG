@@ -24,6 +24,8 @@ use cache::{NodeCache, NodeCacheBuilder};
 use seed_compute::SeedHashCompute;
 use shared::*;
 use std::io;
+use progpow::{create_light_cache,get_block_progpow_hash};
+use ethcore_bigint::hash::H256 as biH256;
 
 use std::mem;
 use std::path::Path;
@@ -54,7 +56,9 @@ impl Light {
 		block_number: u64,
 	) -> Self {
 		let cache = builder.new_cache(cache_dir.to_path_buf(), block_number);
-
+		if block_number > PROGPOW_START {
+			unsafe { create_light_cache((block_number/ETHASH_EPOCH_LENGTH) as u32) }
+		}
 		Light {
 			block_number: block_number,
 			cache: cache,
@@ -65,7 +69,11 @@ impl Light {
 	/// `header_hash` - The header hash to pack into the mix
 	/// `nonce` - The nonce to pack into the mix
 	pub fn compute(&self, header_hash: &H256, nonce: u64) -> ProofOfWork {
-		light_compute(self, header_hash, nonce)
+		if self.block_number > PROGPOW_START {
+			light_progpow(self, header_hash, nonce)
+		} else {
+		    light_compute(self, header_hash, nonce)
+		}
 	}
 
 	pub fn from_file_with_builder(
@@ -131,6 +139,27 @@ pub fn quick_get_difficulty(header_hash: &H256, nonce: u64, mix_hash: &H256) -> 
 pub fn light_compute(light: &Light, header_hash: &H256, nonce: u64) -> ProofOfWork {
 	let full_size = get_data_size(light.block_number);
 	hash_compute(light, full_size, header_hash, nonce)
+}
+
+pub fn light_progpow(light: &Light, header_hash: &H256, nonce: u64) -> ProofOfWork {
+	let cache: &[Node] = light.cache.as_ref();
+	let len = cache.len();
+	println!("light cache len {} {}", len, get_cache_size(light.block_number)/64);
+
+	unsafe { create_light_cache((light.block_number/30000) as u32); }
+
+
+	let mut out = [0; 64];
+	let _x = unsafe {
+		get_block_progpow_hash(header_hash, nonce, &mut out)
+	};		
+	let mut mix_hash: [u8;32] = [0;32];
+	mix_hash[..].clone_from_slice(&out[0..32]);
+	let mut value: [u8;32] = [0;32];
+	for i in 0..32 { value[i] = out[32+i]; }
+	println!("v {}", biH256(value));
+	println!("mix {}", biH256(mix_hash));
+	ProofOfWork { mix_hash: mix_hash, value: value }
 }
 
 fn hash_compute(light: &Light, full_size: usize, header_hash: &H256, nonce: u64) -> ProofOfWork {
@@ -391,6 +420,8 @@ mod test {
 		let result = light_compute(&light, &hash, nonce);
 		assert_eq!(result.mix_hash[..], mix_hash[..]);
 		assert_eq!(result.value[..], boundary[..]);
+
+		let _ = light_progpow(&light, &hash, nonce);	
 	}
 
 	#[test]

@@ -274,7 +274,7 @@ impl Engine<EthereumMachine> for Arc<Ethash> {
 			let idx = number as usize % self.ethash_params.etg_hardfork_dev_accounts.len();
 			let lucky_dev_address = self.ethash_params.etg_hardfork_dev_accounts[idx];
 
-			info!(target: "etg", "dev reward goes to {:?} with amount {:?}", &lucky_dev_address, &dev_reward);
+			//info!(target: "etg", "dev reward goes to {:?} with amount {:?}", &lucky_dev_address, &dev_reward);
 
 			self.machine.add_balance(block, &lucky_dev_address, &dev_reward)?;
 			self.machine.add_balance(block, &author, &author_reward)?;
@@ -358,7 +358,10 @@ impl Engine<EthereumMachine> for Arc<Ethash> {
 		let result = self.pow.compute_light(header.number() as u64, &header.bare_hash().0, header.nonce().low_u64());
 		let mix = H256(result.mix_hash);
 		let difficulty = Ethash::boundary_to_difficulty(&H256(result.value));
-		trace!(target: "miner", "num: {}, seed: {}, h: {}, non: {}, mix: {}, res: {}" , header.number() as u64, H256(slow_hash_block_number(header.number() as u64)), header.bare_hash(), header.nonce().low_u64(), H256(result.mix_hash), H256(result.value));
+		trace!(target: "miner", "num: {}, seed: {}, h: {}, non: {}, mix: {}, res: {}" ,
+		  header.number() as u64, H256(slow_hash_block_number(header.number() as u64)),
+		  header.bare_hash(), header.nonce().low_u64(), H256(result.mix_hash),
+		  H256(result.value));
 		if mix != header.mix_hash() {
 			return Err(From::from(BlockError::MismatchedH256SealElement(Mismatch { expected: mix, found: header.mix_hash() })));
 		}
