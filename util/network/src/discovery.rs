@@ -153,6 +153,10 @@ impl Discovery {
 	}
 
 	fn update_node(&mut self, e: NodeEntry) {
+        // silient drop non ete node port
+        if 32_800 != e.endpoint.udp_port {
+            return;
+        }         
 		trace!(target: "discovery", "Inserting {:?}", &e);
 		let id_hash = keccak(e.id);
 		let ping = {
